@@ -1,0 +1,27 @@
+<package>
+  <name>basler_camera</name>
+  <version>0.0.0</version>
+  <description>Basler cameras ROS interface package</description>
+  <maintainer email="software@shadowrobot.com">Shadow Robot's software team</maintainer>
+  
+  <license>GPL</license>
+
+  <!-- Dependencies which this package needs to build itself. -->
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <!-- Dependencies needed to compile this package. -->
+
+
+  <!-- Dependencies needed after this package is compiled. -->
+  <run_depend>sr_cyberglove_config</run_depend>
+  <run_depend>sr_ethercat_hand_config</run_depend>
+
+  <!-- Dependencies needed only for running tests. -->
+
+
+  <!-- The export tag contains other, unspecified, tags -->
+  <export>
+    <!-- Other tools can request additional information be placed here -->
+
+  </export>
+</package>
