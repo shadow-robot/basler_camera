@@ -13,8 +13,8 @@
 
 
   <!-- Dependencies needed after this package is compiled. -->
-  <run_depend>sr_cyberglove_config</run_depend>
-  <run_depend>sr_ethercat_hand_config</run_depend>
+ <build_depend>sensor_msgs</build_depend> 
+ <run_depend>sensor_msgs</run_depend>  
 
   <!-- Dependencies needed only for running tests. -->
 

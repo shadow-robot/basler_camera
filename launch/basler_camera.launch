@@ -1,0 +1,5 @@
+<launch>
+  <node name="basler_camera" pkg="basler_camera" type="basler_camera_node" output="screen">
+    <param name="frame_rate" type="int" value="24" />
+  </node>
+</launch>
