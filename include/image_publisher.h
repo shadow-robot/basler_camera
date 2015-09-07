@@ -21,8 +21,7 @@ namespace Pylon
 
     ImagePublisher(ros::NodeHandle nh)
       : nh_(nh), it_(nh_) {
-      //cam_pub_ = it_.advertiseCamera("image_raw", 1, false);
-      cam_pub_ = it_.advertise("camera/image", 1);
+      cam_pub_ = it_.advertise("camera/image_raw", 1);
       converter_.OutputPixelFormat = PixelType_RGB8packed;
     }
 

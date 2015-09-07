@@ -20,6 +20,10 @@ int main(int argc, char* argv[])
   if( !priv_nh.getParam("frame_rate", frame_rate) )
     frame_rate = 20.0;
 
+  //std::string frame_rate;
+  //if( !priv_nh.getParam("image_topic", image_topic) )
+  //  image_topic = "image_raw";
+
   // The exit code of the sample application.
   int exitCode = 0;
 
