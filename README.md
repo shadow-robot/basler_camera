@@ -25,12 +25,28 @@ These are the steps needed to publish Basler camera images to ROS:
   d. Unplug and replug all USB cameras to get the udev rules applied.
   
   e. Execute /opt/pylon4/bin/PylonViewerApp to test your cameras.
+  
+2. Setup your environment for pylon to find the necessary dependencies:
 
-2. Launch the basler_Camera node with:
+```bash
+source /opt/pylon4/bin/pylon-setup-env.sh /opt/pylon4
+```
+
+3. Build the package using catkin_make
+
+4. Launch the basler_Camera node with:
 
 ```bash
 roslaunch basler_camera basler_camera.launch
 ```
 
 The frame rate could be modified using the ```frame_rate``` parameter.
+
+5. The image can be visualized using image_view:
+
+```bash
+rosrun image_view image_view image:=/camera/image_raw
+```
+
+
 
