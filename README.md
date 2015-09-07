@@ -8,18 +8,19 @@ These are the steps needed to publish Basler camera images to ROS:
    http://www.baslerweb.com/en/support/downloads/software-downloads?type=28&series=0&model=0
 
 2. Follow these instructions (also available in the install file):
+
   a. Change to the directory which contains this INSTALL file, e.g.: 
-  	```bash
-	cd ~/pylon-4.0.0-x86
-	```
+  ```bash
+  cd ~/pylon-4.0.0-x86
+ ```
   b. Extract the corresponding SDK into /opt
-     ```bash
-     sudo tar -C /opt -xzf pylonSDK*.tar.gz
-     ```
+  ```bash
+  sudo tar -C /opt -xzf pylonSDK*.tar.gz
+  ```
   c. Install udev-rules to set up permissions for basler USB cameras
-  	 ```bash
-     ./setup-usb.sh
-     ```
+  ```bash
+  ./setup-usb.sh
+  ```
        
   d. Unplug and replug all USB cameras to get the udev rules applied.
   
