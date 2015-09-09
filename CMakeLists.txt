@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(basler_camera)
 
-find_package(catkin REQUIRED COMPONENTS roscpp image_transport cv_bridge)
+find_package(catkin REQUIRED COMPONENTS roscpp image_transport camera_info_manager cv_bridge)
 find_package(OpenCV REQUIRED)
 
 catkin_package(
