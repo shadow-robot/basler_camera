@@ -1,0 +1,19 @@
+<package>
+  <name>basler_camera</name>
+  <version>0.0.0</version>
+  <description>Basler cameras ROS interface package</description>
+  <maintainer email="software@shadowrobot.com">Shadow Robot's software team</maintainer>
+  
+  <license>GPL</license>
+
+  <!-- Dependencies which this package needs to build itself. -->
+  <buildtool_depend>catkin</buildtool_depend>
+
+ <build_depend>sensor_msgs</build_depend> 
+ <build_depend>roscpp</build_depend>
+ <build_depend>image_transport</build_depend>
+ <run_depend>sensor_msgs</run_depend>  
+ <run_depend>roscpp</run_depend>
+ <run_depend>image_transport</run_depend>
+
+</package>
