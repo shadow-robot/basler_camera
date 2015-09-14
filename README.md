@@ -31,6 +31,7 @@ These are the steps needed to publish Basler camera images to ROS:
    ```bash
    source /opt/pylon4/bin/pylon-setup-env.sh /opt/pylon4
    ```
+   If using it more than once, you probably also want to add this to your ~/.bashrc
 
 4. Build the package using catkin_make
 
@@ -40,7 +41,7 @@ These are the steps needed to publish Basler camera images to ROS:
    roslaunch basler_camera basler_camera.launch
    ```
 
-   The frame rate could be modified using the ```frame_rate``` parameter.
+   The frame rate could be modified using the `frame_rate` parameter.
 
 6. The image can be visualized using image_view:
 
