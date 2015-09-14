@@ -47,7 +47,7 @@ namespace Pylon
       {
         converter_.Convert(pylon_image_, ptrGrabResult);
 
-        cv_img = cv::Mat(ptrGrabResult->GetHeight(),     ptrGrabResult->GetWidth(), CV_8UC3,(uint8_t*)pylon_image_.GetBuffer());
+        cv_img = cv::Mat(ptrGrabResult->GetHeight(), ptrGrabResult->GetWidth(), CV_8UC3,(uint8_t*)pylon_image_.GetBuffer());
         sensor_msgs::ImagePtr image = cv_bridge::CvImage(std_msgs::Header(), "rgb8", cv_img).toImageMsg();
 
         sensor_msgs::CameraInfo::Ptr cinfo = cinfo_;
