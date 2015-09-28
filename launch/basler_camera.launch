@@ -3,11 +3,9 @@
   <arg name="cam_height" default="960" />
   <arg name="cam_model" default="daA1280-54uc" />
   <arg name="camera_frame" default="camera" />
-  
-  <arg name="marker_size" default="1.5" />
 
   <!-- Choose the calibration file that corresponds to the resolution being used. -->
-  <arg name="cam_calibration_file" default="file://$(find autopic)/config/$(arg cam_model)_$(arg cam_width)x$(arg cam_height).yaml" />
+  <arg name="cam_calibration_file" default="file://$(find basler_camera)/config/$(arg cam_model)_$(arg cam_width)x$(arg cam_height).yaml" />
 
   <node name="basler_camera" pkg="basler_camera" type="basler_camera_node" output="screen">
     <param name="frame_rate" type="int" value="10" />
