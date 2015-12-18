@@ -42,7 +42,7 @@ target_link_libraries(basler_camera_node
   ${catkin_LIBRARIES}
   pylonbase
   pylonutility
-  GenApi_gcc40_v2_3
-  GCBase_gcc40_v2_3
+  GCBase_gcc_v3_0_Basler_pylon_v5_0
+  GenApi_gcc_v3_0_Basler_pylon_v5_0
 ) 
 

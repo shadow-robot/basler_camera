@@ -3,7 +3,7 @@ Basler camera interface with ROS
 
 These are the steps needed to publish Basler camera images to ROS:
 
-1. Get the Pylon 4 Camera Software Suite from the Basler website:
+1. Get the Pylon 5 Camera Software Suite from the Basler website:
 
    http://www.baslerweb.com/en/support/downloads/software-downloads?type=28&series=0&model=0
 
@@ -11,7 +11,7 @@ These are the steps needed to publish Basler camera images to ROS:
 
   a. Change to the directory which contains this INSTALL file, e.g.: 
   ```bash
-  cd ~/pylon-4.0.0-x86
+  cd ~/pylon-5.0.1.6388-x86_64
  ```
   b. Extract the corresponding SDK into /opt
   ```bash
@@ -24,12 +24,12 @@ These are the steps needed to publish Basler camera images to ROS:
        
   d. Unplug and replug all USB cameras to get the udev rules applied.
   
-  e. Execute /opt/pylon4/bin/PylonViewerApp to test your cameras.
+  e. Execute /opt/pylon5/bin/PylonViewerApp to test your cameras.
   
 3. Setup your environment for pylon to find the necessary dependencies:
 
    ```bash
-   source /opt/pylon4/bin/pylon-setup-env.sh /opt/pylon4
+   source /opt/pylon5/bin/pylon-setup-env.sh /opt/pylon5
    ```
    If using it more than once, you probably also want to add this to your ~/.bashrc
 
