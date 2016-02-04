@@ -43,6 +43,8 @@ These are the steps needed to publish Basler camera images to ROS:
 
    The frame rate could be modified using the `frame_rate` parameter.
 
+   The camera can optionally be selected with the `serial_number` parameter.
+
 6. The image can be visualized using image_view:
 
    ```bash

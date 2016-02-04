@@ -30,6 +30,10 @@ int main(int argc, char* argv[])
   if( !priv_nh.getParam("frame_id", frame_id) )
     frame_id = "";
 
+  std::string serial_number;
+  if( !priv_nh.getParam("serial_number", serial_number) )
+    serial_number = "";
+
   int exitCode = 0;
 
   // Automatically call PylonInitialize and PylonTerminate to ensure the pylon runtime system
@@ -39,8 +43,26 @@ int main(int argc, char* argv[])
 
   try
   {
-    // Create an instant camera object for the camera device found first.
-    CInstantCamera camera( CTlFactory::GetInstance().CreateFirstDevice());
+    CTlFactory& tlFactory = CTlFactory::GetInstance();
+    DeviceInfoList_t devices;
+    if ( tlFactory.EnumerateDevices(devices) == 0 )
+    {
+      throw RUNTIME_EXCEPTION( "No camera present.");
+    }
+
+    CInstantCamera camera;
+    if (serial_number == "") {
+      // Create an instant camera object for the camera device found first.
+      camera.Attach(CTlFactory::GetInstance().CreateFirstDevice());
+    } else {
+      // Look up the camera by its serial number
+      for (size_t i=0; i<devices.size(); i++) {
+        if (devices[i].GetSerialNumber().c_str() == serial_number) {
+          camera.Attach( tlFactory.CreateDevice(devices[i]));
+          break;
+        }
+      }
+    }
 
     ROS_INFO_STREAM("using device " << camera.GetDeviceInfo().GetModelName());
 
