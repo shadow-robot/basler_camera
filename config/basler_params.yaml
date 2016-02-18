@@ -1,2 +1,2 @@
 basler_params_float:
-  AcquisitionFrameRate: 1.0
+  AcquisitionFrameRate: 30.0
