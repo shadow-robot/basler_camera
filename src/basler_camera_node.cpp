@@ -20,10 +20,11 @@ void handle_basler_int_parameters(CInstantCamera& camera, std::map<std::string, 
   {
     for (std::map<std::string,int>::iterator it=int_map.begin(); it!=int_map.end(); ++it)
     {
+      ROS_INFO_STREAM("Setting int param " << it->first << " to " << it->second << ".");
       CIntegerPtr this_node(nodemap.GetNode(it->first.c_str()));
       if (!IsWritable(this_node))
       {
-        ROS_ERROR_STREAM("Basler parameter '" << it->first << "' isn't writable.");
+        ROS_ERROR_STREAM("Basler parameter '" << it->first << "' isn't writable or doesn't exist.");
         continue;
       }
       this_node->SetValue(it->second);
@@ -42,10 +43,11 @@ void handle_basler_float_parameters(CInstantCamera& camera, std::map<std::string
   {
     for (std::map<std::string,float>::iterator it=float_map.begin(); it!=float_map.end(); ++it)
     {
+      ROS_INFO_STREAM("Setting float param " << it->first << " to " << it->second << ".");
       CFloatPtr this_node(nodemap.GetNode(it->first.c_str()));
       if (!IsWritable(this_node))
       {
-        ROS_ERROR_STREAM("Basler parameter '" << it->first << "' isn't writable.");
+        ROS_ERROR_STREAM("Basler parameter '" << it->first << "' isn't writable or doesn't exist.");
         continue;
       }
       this_node->SetValue(it->second);
@@ -64,10 +66,11 @@ void handle_basler_enum_parameters(CInstantCamera& camera, std::map<std::string,
   {
     for (std::map<std::string,std::string>::iterator it=enum_map.begin(); it!=enum_map.end(); ++it)
     {
+      ROS_INFO_STREAM("Setting enum param " << it->first << " to " << it->second << ".");
       CEnumerationPtr this_node(nodemap.GetNode(it->first.c_str()));
       if (!IsWritable(this_node))
       {
-        ROS_ERROR_STREAM("Basler parameter '" << it->first << "' isn't writable.");
+        ROS_ERROR_STREAM("Basler parameter '" << it->first << "' isn't writable or doesn't exist.");
         continue;
       }
       if (!IsAvailable(this_node->GetEntryByName(it->second.c_str())))
@@ -183,7 +186,7 @@ int main(int argc, char* argv[])
     camera.Open();
 
     INodeMap& nodemap = camera.GetNodeMap();
-    CIntegerPtr frame_rate_node(nodemap.GetNode("AcquisitionFrameRate"));
+    CFloatPtr frame_rate_node(nodemap.GetNode("AcquisitionFrameRate"));
     frame_rate_node->SetValue(frame_rate); // This would be overwriten if you specifed different
     // frame rate as basler_float_param but left here to honour previously documented although
     // apparently unimplemented feature...
