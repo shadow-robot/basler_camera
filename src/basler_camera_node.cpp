@@ -91,11 +91,11 @@ void handle_basler_parameters(CInstantCamera& camera)
   std::map<std::string, float> float_params;
   std::map<std::string, int> int_params;
 
-  // if (private_handle.hasParam("basler_params_enum"))
-  // {
-  //   private_handle.getParam("basler_params_enum", enum_params);
-  //   handle_basler_enum_parameters(camera, enum_params);
-  // }
+  if (private_handle.hasParam("basler_params_enum"))
+  {
+    private_handle.getParam("basler_params_enum", enum_params);
+    handle_basler_enum_parameters(camera, enum_params);
+  }
 
   if (private_handle.hasParam("basler_params_int"))
   {
