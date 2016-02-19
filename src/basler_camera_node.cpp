@@ -6,29 +6,27 @@
 
 // Include files to use the PYLON API.
 #include <pylon/PylonIncludes.h>
-//#include <pylon/usb/BaslerUsbInstantCamera.h>
 
 #include "image_publisher.h"
+#include <XmlRpcValue.h>
 
 using namespace Pylon;
 using namespace GenApi;
+using std::string;
 
-void handle_basler_int_parameters(CInstantCamera& camera, std::map<std::string, int> int_map)
+void handle_basler_int_parameter(CInstantCamera& camera, string name, int value)
 {
   INodeMap& nodemap = camera.GetNodeMap();
   try
   {
-    for (std::map<std::string,int>::iterator it=int_map.begin(); it!=int_map.end(); ++it)
+    ROS_INFO_STREAM("Setting int param " << name << " to " << value << ".");
+    CIntegerPtr this_node(nodemap.GetNode(name.c_str()));
+    if (!IsWritable(this_node))
     {
-      ROS_INFO_STREAM("Setting int param " << it->first << " to " << it->second << ".");
-      CIntegerPtr this_node(nodemap.GetNode(it->first.c_str()));
-      if (!IsWritable(this_node))
-      {
-        ROS_ERROR_STREAM("Basler parameter '" << it->first << "' isn't writable or doesn't exist.");
-        continue;
-      }
-      this_node->SetValue(it->second);
+      ROS_ERROR_STREAM("Basler parameter '" << name << "' isn't writable or doesn't exist.");
+      return;
     }
+    this_node->SetValue(value);
   }
   catch (const GenericException& e)
   {
@@ -36,22 +34,19 @@ void handle_basler_int_parameters(CInstantCamera& camera, std::map<std::string, 
   }
 }
 
-void handle_basler_float_parameters(CInstantCamera& camera, std::map<std::string, float> float_map)
+void handle_basler_float_parameter(CInstantCamera& camera, string name, double value)
 {
   INodeMap& nodemap = camera.GetNodeMap();
   try
   {
-    for (std::map<std::string,float>::iterator it=float_map.begin(); it!=float_map.end(); ++it)
+    ROS_INFO_STREAM("Setting float param " << name << " to " << value << ".");
+    CFloatPtr this_node(nodemap.GetNode(name.c_str()));
+    if (!IsWritable(this_node))
     {
-      ROS_INFO_STREAM("Setting float param " << it->first << " to " << it->second << ".");
-      CFloatPtr this_node(nodemap.GetNode(it->first.c_str()));
-      if (!IsWritable(this_node))
-      {
-        ROS_ERROR_STREAM("Basler parameter '" << it->first << "' isn't writable or doesn't exist.");
-        continue;
-      }
-      this_node->SetValue(it->second);
+      ROS_ERROR_STREAM("Basler parameter '" << name << "' isn't writable or doesn't exist.");
+      return;
     }
+    this_node->SetValue(value);
   }
   catch (const GenericException& e)
   {
@@ -59,27 +54,24 @@ void handle_basler_float_parameters(CInstantCamera& camera, std::map<std::string
   }
 }
 
-void handle_basler_enum_parameters(CInstantCamera& camera, std::map<std::string, std::string> enum_map)
+void handle_basler_enum_parameter(CInstantCamera& camera, string name, string value)
 {
   INodeMap& nodemap = camera.GetNodeMap();
   try
   {
-    for (std::map<std::string,std::string>::iterator it=enum_map.begin(); it!=enum_map.end(); ++it)
+    ROS_INFO_STREAM("Setting enum param " << name << " to " << value << ".");
+    CEnumerationPtr this_node(nodemap.GetNode(name.c_str()));
+    if (!IsWritable(this_node))
     {
-      ROS_INFO_STREAM("Setting enum param " << it->first << " to " << it->second << ".");
-      CEnumerationPtr this_node(nodemap.GetNode(it->first.c_str()));
-      if (!IsWritable(this_node))
-      {
-        ROS_ERROR_STREAM("Basler parameter '" << it->first << "' isn't writable or doesn't exist.");
-        continue;
-      }
-      if (!IsAvailable(this_node->GetEntryByName(it->second.c_str())))
-      {
-        ROS_ERROR_STREAM("Valuer '" << it->second << "' isn't available for basler param '" << it->first << "'.");
-        continue;
-      }
-      this_node->FromString(it->second.c_str());
+      ROS_ERROR_STREAM("Basler parameter '" << name << "' isn't writable or doesn't exist.");
+      return;
     }
+    if (!IsAvailable(this_node->GetEntryByName(value.c_str())))
+    {
+      ROS_ERROR_STREAM("Valuer '" << value << "' isn't available for basler param '" << name << "'.");
+      return;
+    }
+    this_node->FromString(value.c_str());
   }
   catch (const GenericException& e)
   {
@@ -90,26 +82,33 @@ void handle_basler_enum_parameters(CInstantCamera& camera, std::map<std::string,
 void handle_basler_parameters(CInstantCamera& camera)
 {
   ros::NodeHandle private_handle("~");
-  std::map<std::string, std::string> enum_params;
-  std::map<std::string, float> float_params;
-  std::map<std::string, int> int_params;
-
-  if (private_handle.hasParam("basler_params_enum"))
+  XmlRpc::XmlRpcValue params;
+  private_handle.getParam("basler_params", params);
+  ROS_ASSERT_MSG(params.getType() == XmlRpc::XmlRpcValue::TypeArray, "Badly formed basler param yaml");
+  for (size_t index = 0; index < params.size(); ++index)
   {
-    private_handle.getParam("basler_params_enum", enum_params);
-    handle_basler_enum_parameters(camera, enum_params);
-  }
+    ROS_ASSERT_MSG(params[index].getType() == XmlRpc::XmlRpcValue::TypeStruct, "Badly formed basler param yaml");
+    ROS_ASSERT_MSG(params[index].hasMember("name"), "Param needs name");
+    ROS_ASSERT_MSG(params[index].hasMember("type"), "Param needs type");
+    ROS_ASSERT_MSG(params[index].hasMember("value"), "Param needs value");
+    string type = params[index]["type"];
 
-  if (private_handle.hasParam("basler_params_int"))
-  {
-    private_handle.getParam("basler_params_int", int_params);
-    handle_basler_int_parameters(camera, int_params);
-  }
-
-  if (private_handle.hasParam("basler_params_float"))
-  {
-    private_handle.getParam("basler_params_float", float_params);
-    handle_basler_float_parameters(camera, float_params);
+    if ("int" == type)
+    {
+      handle_basler_int_parameter(camera, params[index]["name"], params[index]["value"]);
+    }
+    else if ("float" == type)
+    {
+      handle_basler_float_parameter(camera, params[index]["name"], params[index]["value"]);
+    }
+    else if ("enum" == type)
+    {
+      handle_basler_enum_parameter(camera, params[index]["name"], params[index]["value"]);
+    }
+    else
+    {
+      ROS_FATAL_STREAM("Unknown param type: " << type);
+    }
   }
 }
 
@@ -191,19 +190,7 @@ int main(int argc, char* argv[])
     // frame rate as basler_float_param but left here to honour previously documented although
     // apparently unimplemented feature...
 
-
     handle_basler_parameters(camera);
-
-/*
-
-    CFloatPtr max_exposure_node(nodemap.GetNode("AutoExposureUpperLimit"));
-*/
-
-
-
-      // if linked mode
-
-      // set max exposure time to work with frame rate
 
     camera.StartGrabbing();
 
@@ -214,7 +201,8 @@ int main(int argc, char* argv[])
     }
   }
   catch (GenICam::GenericException &e)
-  {   ROS_ERROR_STREAM ( "An exception occurred." << e.GetDescription());
+  {
+    ROS_ERROR_STREAM ( "An exception occurred." << e.GetDescription());
     exitCode = 1;
   }
   return exitCode;

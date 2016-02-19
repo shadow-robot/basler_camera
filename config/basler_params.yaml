@@ -1,2 +1,13 @@
-basler_params_float:
-  AcquisitionFrameRate: 30.0
+basler_params:
+  -
+    name: AcquisitionFrameRate
+    type: float
+    value: 1.0
+  -
+    name: AcquisitionMode
+    type: enum
+    value: Continuous
+  -
+    name: ExposureAuto
+    type: enum
+    value: Continuous
