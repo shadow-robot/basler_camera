@@ -188,18 +188,12 @@ int main(int argc, char* argv[])
       new sensor_msgs::CameraInfo(cinfo_manager_.getCameraInfo()));
 
     camera.RegisterImageEventHandler( new ImagePublisher(nh, cinfo, frame_id), RegistrationMode_Append, Cleanup_Delete);
-
     camera.RegisterConfiguration( new CAcquireContinuousConfiguration , RegistrationMode_ReplaceAll, Cleanup_Delete);
-
-
 
     camera.Open();
 
-    INodeMap& nodemap = camera.GetNodeMap();
-    CFloatPtr frame_rate_node(nodemap.GetNode("AcquisitionFrameRate"));
-    frame_rate_node->SetValue(frame_rate); // This would be overwriten if you specifed different
-    // frame rate as basler_float_param but left here to honour previously documented although
-    // apparently unimplemented feature...
+    handle_basler_float_parameter(camera, "AcquisitionFrameRate", frame_rate); // This would be overwriten if you specifed
+    // different frame rate via a yaml file, here to honour previously documented although apparently unimplemented feature.
 
     handle_basler_parameters(camera);
 
