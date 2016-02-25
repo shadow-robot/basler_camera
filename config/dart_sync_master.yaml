@@ -1,0 +1,33 @@
+basler_params:
+  -
+    name: AcquisitionFrameRate
+    type: float
+    value: 20.0
+  -
+    name: AutoExposureTimeUpperLimit
+    type: float
+    value: 10000.0
+  -
+    name: AcquisitionMode
+    type: enum
+    value: Continuous
+  -
+    name: ExposureAuto
+    type: enum
+    value: Continuous
+  -
+    name: TriggerMode
+    type: enum
+    value: 'Off'
+  -
+    name: LineSelector
+    type: enum
+    value: Line1
+  -
+    name: LineMode
+    type: enum
+    value: Output
+  -
+    name: LineSource
+    type: enum
+    value: ExposureActive

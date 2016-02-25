@@ -79,6 +79,33 @@ void handle_basler_enum_parameter(CInstantCamera& camera, string name, string va
   }
 }
 
+void handle_basler_parameter(CInstantCamera& camera, XmlRpc::XmlRpcValue& param)
+{
+  string type = param["type"];
+  if ("int" == type)
+  {
+    ROS_ASSERT_MSG(param["value"].getType() == XmlRpc::XmlRpcValue::TypeInt,
+                   "Type of value for %s must be int", string(param["name"]).c_str());
+    handle_basler_int_parameter(camera, param["name"], param["value"]);
+  }
+  else if ("float" == type)
+  {
+    ROS_ASSERT_MSG(param["value"].getType() == XmlRpc::XmlRpcValue::TypeDouble,
+                   "Type of value for %s must be float", string(param["name"]).c_str());
+    handle_basler_float_parameter(camera, param["name"], param["value"]);
+  }
+  else if ("enum" == type)
+  {
+    ROS_ASSERT_MSG(param["value"].getType() == XmlRpc::XmlRpcValue::TypeString,
+                   "Type of value for %s must be string", string(param["name"]).c_str());
+    handle_basler_enum_parameter(camera, param["name"], param["value"]);
+  }
+  else
+  {
+    ROS_FATAL_STREAM("Unknown param type for parameter " << param["name"] << ": " << type);
+  }
+}
+
 void handle_basler_parameters(CInstantCamera& camera)
 {
   ros::NodeHandle private_handle("~");
@@ -91,24 +118,8 @@ void handle_basler_parameters(CInstantCamera& camera)
     ROS_ASSERT_MSG(params[index].hasMember("name"), "Param needs name");
     ROS_ASSERT_MSG(params[index].hasMember("type"), "Param needs type");
     ROS_ASSERT_MSG(params[index].hasMember("value"), "Param needs value");
-    string type = params[index]["type"];
 
-    if ("int" == type)
-    {
-      handle_basler_int_parameter(camera, params[index]["name"], params[index]["value"]);
-    }
-    else if ("float" == type)
-    {
-      handle_basler_float_parameter(camera, params[index]["name"], params[index]["value"]);
-    }
-    else if ("enum" == type)
-    {
-      handle_basler_enum_parameter(camera, params[index]["name"], params[index]["value"]);
-    }
-    else
-    {
-      ROS_FATAL_STREAM("Unknown param type: " << type);
-    }
+    handle_basler_parameter(camera, params[index]);
   }
 }
 
@@ -196,7 +207,7 @@ int main(int argc, char* argv[])
 
     while ( camera.IsGrabbing() && ros::ok())
     {
-      camera.RetrieveResult( 5000, ptrGrabResult, TimeoutHandling_ThrowException);
+      camera.RetrieveResult( 1, ptrGrabResult, TimeoutHandling_Return);
       ros::spinOnce();
     }
   }
