@@ -2,9 +2,9 @@ basler_params:
   -
     name: AcquisitionFrameRate
     type: float
-    value: 20.0
+    value: 5.0
   -
-    name: AutoExposureTimeUpperLimit
+    name: ExposureTime
     type: float
     value: 10000.0
   -
@@ -12,9 +12,21 @@ basler_params:
     type: enum
     value: Continuous
   -
+    name: OverlapMode
+    type: enum
+    value: 'Off'
+  -
     name: ExposureAuto
     type: enum
-    value: Once
+    value: Continuous
+  -
+    name: GainAuto
+    type: enum
+    value: 'Off'
+  -
+    name: Gain
+    type: float
+    value: 10.0
   -
     name: TriggerMode
     type: enum
