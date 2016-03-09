@@ -6,8 +6,8 @@ basler_params:
   -
     name: ExposureTime
     type: float
-    value: 10000.0
-  -
+    value: 15000.0
+  - 
     name: AcquisitionMode
     type: enum
     value: Continuous
@@ -18,15 +18,31 @@ basler_params:
   -
     name: ExposureAuto
     type: enum
-    value: Continuous
+    value: 'Off'
   -
     name: GainAuto
     type: enum
     value: 'Off'
   -
+    name: LightSourcePreset
+    type: enum
+    value: 'Off'
+  -
+    name: BalanceWhiteAuto
+    type: enum
+    value: 'Off'
+  -
+    name: BalanceRatioSelector
+    type: enum
+    value: 'Blue'
+  -
+    name: BalanceRatio
+    type: float
+    value: 2.56
+  -
     name: Gain
     type: float
-    value: 10.0
+    value: 1.0
   -
     name: TriggerMode
     type: enum
