@@ -5,11 +5,11 @@
   <arg name="camera_frame" default="camera" />
 
   <!-- Choose the calibration file that corresponds to the resolution being used. -->
-  <arg name="cam_calibration_file" default="file://$(find basler_camera)/config/$(arg cam_model)_$(arg cam_width)x$(arg cam_height).yaml" />
+  <arg name="cam_calibration_file" default="file://$(find basler_camera)/config/left.yaml"/>
 
   <node ns="right" name="basler_camera_master" pkg="basler_camera" type="basler_camera_node" output="screen">
     <param name="frame_rate" type="int" value="10" />
-    <param name="frame_id" type="string" value="$(arg camera_frame)" />
+    <param name="frame_id" type="string" value="right_camera" />
     <param name="camera_info_url" type="string" value="$(arg cam_calibration_file)" />
     <param name="serial_number" type="string" value="21741660"/>
     <rosparam command="load" file="$(find basler_camera)/config/dart_sync_master.yaml"/>
@@ -17,13 +17,13 @@
 
   <node ns="left" name="basler_camera_master" pkg="basler_camera" type="basler_camera_node" output="screen">
     <param name="frame_rate" type="int" value="10" />
-    <param name="frame_id" type="string" value="$(arg camera_frame)" />
+    <param name="frame_id" type="string" value="left_camera" />
     <param name="camera_info_url" type="string" value="$(arg cam_calibration_file)" />
     <param name="serial_number" type="string" value="21741659"/>
     <rosparam command="load" file="$(find basler_camera)/config/dart_sync_slave.yaml"/>
   </node>
 
-<!--
-  <node ns="/master/camera" pkg="image_proc" type="image_proc" name="image_proc"/>
-  <node ns="/slave/camera" pkg="image_proc" type="image_proc" name="image_proc"/> -->
+
+  <node ns="/left/camera" pkg="image_proc" type="image_proc" name="image_proc"/>
+  <node ns="/right/camera" pkg="image_proc" type="image_proc" name="image_proc"/>
 </launch>
