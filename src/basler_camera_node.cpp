@@ -126,24 +126,23 @@ void handle_basler_parameters(CInstantCamera& camera)
 int main(int argc, char* argv[])
 {
   ros::init(argc, argv, "basler_camera");
-  ros::NodeHandle nh;
-  ros::NodeHandle priv_nh("~");
+  ros::NodeHandle nh("~");
   camera_info_manager::CameraInfoManager cinfo_manager_(nh);
 
   int frame_rate;
-  if( !priv_nh.getParam("frame_rate", frame_rate) )
+  if( !nh.getParam("frame_rate", frame_rate) )
     frame_rate = 20;
 
   string camera_info_url;
-  if( !priv_nh.getParam("camera_info_url", camera_info_url) )
+  if( !nh.getParam("camera_info_url", camera_info_url) )
     camera_info_url = "";
 
   string frame_id;
-  if( !priv_nh.getParam("frame_id", frame_id) )
+  if( !nh.getParam("frame_id", frame_id) )
     frame_id = "";
 
   std::string serial_number;
-  if( !priv_nh.getParam("serial_number", serial_number) )
+  if( !nh.getParam("serial_number", serial_number) )
     serial_number = "";
 
   int exitCode = 0;
