@@ -197,6 +197,15 @@ int main(int argc, char* argv[])
 
     handle_basler_parameters(camera);
 
+    // Set the pixel format to RGB8 if available.
+    INodeMap& nodemap = camera.GetNodeMap();
+    CEnumerationPtr pixelFormat( nodemap.GetNode( "PixelFormat"));
+    String_t oldPixelFormat = pixelFormat->ToString();
+    if ( IsAvailable( pixelFormat->GetEntryByName( "RGB8")))
+    {
+        pixelFormat->FromString( "RGB8");
+    }
+
     camera.StartGrabbing();
 
     while ( camera.IsGrabbing() && ros::ok())

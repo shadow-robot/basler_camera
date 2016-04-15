@@ -2,12 +2,12 @@ basler_params:
   -
     name: AcquisitionFrameRate
     type: float
-    value: 5.0
+    value: 10.0
   -
     name: ExposureTime
     type: float
     value: 15000.0
-  - 
+  -
     name: AcquisitionMode
     type: enum
     value: Continuous
