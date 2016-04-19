@@ -128,7 +128,7 @@ int main(int argc, char* argv[])
   ros::init(argc, argv, "basler_camera");
   ros::NodeHandle nh;
   ros::NodeHandle priv_nh("~");
-  camera_info_manager::CameraInfoManager cinfo_manager_(nh);
+
 
   int frame_rate;
   if( !priv_nh.getParam("frame_rate", frame_rate) )
@@ -142,11 +142,17 @@ int main(int argc, char* argv[])
   if( !priv_nh.getParam("frame_id", frame_id) )
     frame_id = "";
 
+  string camera_name;
+  if( !priv_nh.getParam("camera_name", camera_name) )
+    camera_name = "";
+
   std::string serial_number;
   if( !priv_nh.getParam("serial_number", serial_number) )
     serial_number = "";
 
   int exitCode = 0;
+
+  camera_info_manager::CameraInfoManager cinfo_manager_(nh, camera_name);
 
   // Automatically call PylonInitialize and PylonTerminate to ensure the pylon runtime system
   // is initialized during the lifetime of this object.
@@ -187,7 +193,7 @@ int main(int argc, char* argv[])
     sensor_msgs::CameraInfo::Ptr cinfo(
       new sensor_msgs::CameraInfo(cinfo_manager_.getCameraInfo()));
 
-    camera.RegisterImageEventHandler( new ImagePublisher(nh, cinfo, frame_id), RegistrationMode_Append, Cleanup_Delete);
+    camera.RegisterImageEventHandler( new ImagePublisher(nh, cinfo, frame_id, camera_name), RegistrationMode_Append, Cleanup_Delete);
     camera.RegisterConfiguration( new CAcquireContinuousConfiguration , RegistrationMode_ReplaceAll, Cleanup_Delete);
 
     camera.Open();
@@ -196,6 +202,15 @@ int main(int argc, char* argv[])
     // different frame rate via a yaml file, here to honour previously documented although apparently unimplemented feature.
 
     handle_basler_parameters(camera);
+
+    // Set the pixel format to RGB8 if available.
+    INodeMap& nodemap = camera.GetNodeMap();
+    CEnumerationPtr pixelFormat( nodemap.GetNode( "PixelFormat"));
+    String_t oldPixelFormat = pixelFormat->ToString();
+    if (IsAvailable(pixelFormat->GetEntryByName( "RGB8")))
+    {
+        pixelFormat->FromString("RGB8");
+    }
 
     camera.StartGrabbing();
 
