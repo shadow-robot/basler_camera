@@ -128,7 +128,7 @@ int main(int argc, char* argv[])
   ros::init(argc, argv, "basler_camera");
   ros::NodeHandle nh;
   ros::NodeHandle priv_nh("~");
-  camera_info_manager::CameraInfoManager cinfo_manager_(nh);
+
 
   int frame_rate;
   if( !priv_nh.getParam("frame_rate", frame_rate) )
@@ -142,11 +142,17 @@ int main(int argc, char* argv[])
   if( !priv_nh.getParam("frame_id", frame_id) )
     frame_id = "";
 
+  string camera_name;
+  if( !priv_nh.getParam("camera_name", camera_name) )
+    camera_name = "";
+
   std::string serial_number;
   if( !priv_nh.getParam("serial_number", serial_number) )
     serial_number = "";
 
   int exitCode = 0;
+
+  camera_info_manager::CameraInfoManager cinfo_manager_(nh, camera_name);
 
   // Automatically call PylonInitialize and PylonTerminate to ensure the pylon runtime system
   // is initialized during the lifetime of this object.
