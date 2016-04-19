@@ -193,7 +193,7 @@ int main(int argc, char* argv[])
     sensor_msgs::CameraInfo::Ptr cinfo(
       new sensor_msgs::CameraInfo(cinfo_manager_.getCameraInfo()));
 
-    camera.RegisterImageEventHandler( new ImagePublisher(nh, cinfo, frame_id), RegistrationMode_Append, Cleanup_Delete);
+    camera.RegisterImageEventHandler( new ImagePublisher(nh, cinfo, frame_id, camera_name), RegistrationMode_Append, Cleanup_Delete);
     camera.RegisterConfiguration( new CAcquireContinuousConfiguration , RegistrationMode_ReplaceAll, Cleanup_Delete);
 
     camera.Open();
@@ -207,9 +207,9 @@ int main(int argc, char* argv[])
     INodeMap& nodemap = camera.GetNodeMap();
     CEnumerationPtr pixelFormat( nodemap.GetNode( "PixelFormat"));
     String_t oldPixelFormat = pixelFormat->ToString();
-    if ( IsAvailable( pixelFormat->GetEntryByName( "RGB8")))
+    if (IsAvailable(pixelFormat->GetEntryByName( "RGB8")))
     {
-        pixelFormat->FromString( "RGB8");
+        pixelFormat->FromString("RGB8");
     }
 
     camera.StartGrabbing();

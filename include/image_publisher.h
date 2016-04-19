@@ -21,9 +21,9 @@ namespace Pylon
   {
   public:
 
-    ImagePublisher(ros::NodeHandle nh, sensor_msgs::CameraInfo::Ptr cinfo, string frame_id)
+    ImagePublisher(ros::NodeHandle nh, sensor_msgs::CameraInfo::Ptr cinfo, string frame_id, string camera_name)
       : nh_(nh), it_(nh_) {
-      cam_pub_ = it_.advertiseCamera(frame_id+"/image_raw", 1);
+      cam_pub_ = it_.advertiseCamera(camera_name + "/image_raw", 1);
       converter_.OutputPixelFormat = PixelType_RGB8packed;
       cinfo_ = cinfo;
       frame_id_ = frame_id;
