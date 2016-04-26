@@ -126,29 +126,25 @@ void handle_basler_parameters(CInstantCamera& camera)
 int main(int argc, char* argv[])
 {
   ros::init(argc, argv, "basler_camera");
-  ros::NodeHandle nh;
-  ros::NodeHandle priv_nh("~");
-
+  ros::NodeHandle nh("~");
 
   int frame_rate;
-  if( !priv_nh.getParam("frame_rate", frame_rate) )
+  if( !nh.getParam("frame_rate", frame_rate) )
     frame_rate = 20;
 
   string camera_info_url;
-  if( !priv_nh.getParam("camera_info_url", camera_info_url) )
+  if( !nh.getParam("camera_info_url", camera_info_url) )
     camera_info_url = "";
 
   string frame_id;
-  if( !priv_nh.getParam("frame_id", frame_id) )
+  if( !nh.getParam("frame_id", frame_id) )
     frame_id = "";
 
-  string camera_name;
-  if( !priv_nh.getParam("camera_name", camera_name) )
-    camera_name = "";
-
   std::string serial_number;
-  if( !priv_nh.getParam("serial_number", serial_number) )
+  if( !nh.getParam("serial_number", serial_number) )
     serial_number = "";
+
+  std::string camera_name = nh.getNamespace();
 
   int exitCode = 0;
 
@@ -193,8 +189,8 @@ int main(int argc, char* argv[])
     sensor_msgs::CameraInfo::Ptr cinfo(
       new sensor_msgs::CameraInfo(cinfo_manager_.getCameraInfo()));
 
-    camera.RegisterImageEventHandler( new ImagePublisher(nh, cinfo, frame_id, camera_name), RegistrationMode_Append, Cleanup_Delete);
-    camera.RegisterConfiguration( new CAcquireContinuousConfiguration , RegistrationMode_ReplaceAll, Cleanup_Delete);
+    camera.RegisterImageEventHandler(new ImagePublisher(nh, cinfo, frame_id), RegistrationMode_Append, Cleanup_Delete);
+    camera.RegisterConfiguration(new CAcquireContinuousConfiguration , RegistrationMode_ReplaceAll, Cleanup_Delete);
 
     camera.Open();
 
@@ -205,24 +201,24 @@ int main(int argc, char* argv[])
 
     // Set the pixel format to RGB8 if available.
     INodeMap& nodemap = camera.GetNodeMap();
-    CEnumerationPtr pixelFormat( nodemap.GetNode( "PixelFormat"));
+    CEnumerationPtr pixelFormat( nodemap.GetNode("PixelFormat"));
     String_t oldPixelFormat = pixelFormat->ToString();
     if (IsAvailable(pixelFormat->GetEntryByName( "RGB8")))
     {
-        pixelFormat->FromString("RGB8");
+      pixelFormat->FromString("RGB8");
     }
 
     camera.StartGrabbing();
 
-    while ( camera.IsGrabbing() && ros::ok())
+    while (camera.IsGrabbing() && ros::ok())
     {
-      camera.RetrieveResult( 1, ptrGrabResult, TimeoutHandling_Return);
+      camera.RetrieveResult(1, ptrGrabResult, TimeoutHandling_Return);
       ros::spinOnce();
     }
   }
   catch (GenICam::GenericException &e)
   {
-    ROS_ERROR_STREAM ( "An exception occurred." << e.GetDescription());
+    ROS_ERROR_STREAM ("An exception occurred." << e.GetDescription());
     exitCode = 1;
   }
   return exitCode;

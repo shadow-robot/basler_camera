@@ -51,5 +51,11 @@ These are the steps needed to publish Basler camera images to ROS:
    rosrun image_view image_view image:=/camera/image_raw
    ```
 
-
-
+7. If you have a stereo system then launch the cameras as:
+   ```bash
+   roslaunch basler_camera stereo_rectified.launch
+   ```
+   or:
+   ```bash
+   roslaunch basler_camera stereo_unrectified.launch
+   ```
