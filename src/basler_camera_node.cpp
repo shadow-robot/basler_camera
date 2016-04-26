@@ -129,19 +129,19 @@ int main(int argc, char* argv[])
   ros::NodeHandle nh("~");
 
   int frame_rate;
-  if( !nh.getParam("frame_rate", frame_rate) )
+  if(!nh.getParam("frame_rate", frame_rate))
     frame_rate = 20;
 
   string camera_info_url;
-  if( !nh.getParam("camera_info_url", camera_info_url) )
+  if(!nh.getParam("camera_info_url", camera_info_url))
     camera_info_url = "";
 
   string frame_id;
-  if( !nh.getParam("frame_id", frame_id) )
+  if(!nh.getParam("frame_id", frame_id))
     frame_id = "";
 
   std::string serial_number;
-  if( !nh.getParam("serial_number", serial_number) )
+  if(!nh.getParam("serial_number", serial_number))
     serial_number = "";
 
   std::string camera_name = nh.getNamespace();
@@ -159,9 +159,9 @@ int main(int argc, char* argv[])
   {
     CTlFactory& tlFactory = CTlFactory::GetInstance();
     DeviceInfoList_t devices;
-    if ( tlFactory.EnumerateDevices(devices) == 0 )
+    if (tlFactory.EnumerateDevices(devices) == 0)
     {
-      throw RUNTIME_EXCEPTION( "No camera present.");
+      throw RUNTIME_EXCEPTION("No camera present.");
     }
 
     CInstantCamera camera;
@@ -172,7 +172,7 @@ int main(int argc, char* argv[])
       // Look up the camera by its serial number
       for (size_t i=0; i<devices.size(); i++) {
         if (devices[i].GetSerialNumber().c_str() == serial_number) {
-          camera.Attach( tlFactory.CreateDevice(devices[i]));
+          camera.Attach(tlFactory.CreateDevice(devices[i]));
           break;
         }
       }
@@ -201,9 +201,9 @@ int main(int argc, char* argv[])
 
     // Set the pixel format to RGB8 if available.
     INodeMap& nodemap = camera.GetNodeMap();
-    CEnumerationPtr pixelFormat( nodemap.GetNode("PixelFormat"));
+    CEnumerationPtr pixelFormat(nodemap.GetNode("PixelFormat"));
     String_t oldPixelFormat = pixelFormat->ToString();
-    if (IsAvailable(pixelFormat->GetEntryByName( "RGB8")))
+    if (IsAvailable(pixelFormat->GetEntryByName("RGB8")))
     {
       pixelFormat->FromString("RGB8");
     }
