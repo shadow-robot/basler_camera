@@ -14,6 +14,26 @@ using namespace Pylon;
 using namespace GenApi;
 using std::string;
 
+void handle_basler_boolean_parameter(CInstantCamera& camera, string name, bool value)
+{
+  INodeMap& nodemap = camera.GetNodeMap();
+  try
+  {
+    ROS_INFO_STREAM("Setting boolean param " << name << " to " << value << ".");
+    CBooleanPtr this_node(nodemap.GetNode(name.c_str()));
+    if (!IsWritable(this_node))
+    {
+      ROS_ERROR_STREAM("Basler parameter '" << name << "' isn't writable or doesn't exist.");
+      return;
+    }
+    this_node->SetValue(value);
+  }
+  catch (const GenericException& e)
+  {
+    ROS_ERROR_STREAM(e.GetDescription());
+  }
+}
+
 void handle_basler_int_parameter(CInstantCamera& camera, string name, int value)
 {
   INodeMap& nodemap = camera.GetNodeMap();
@@ -82,7 +102,13 @@ void handle_basler_enum_parameter(CInstantCamera& camera, string name, string va
 void handle_basler_parameter(CInstantCamera& camera, XmlRpc::XmlRpcValue& param)
 {
   string type = param["type"];
-  if ("int" == type)
+  if ("boolean" == type)
+  {
+    ROS_ASSERT_MSG(param["value"].getType() == XmlRpcValue::TypeBoolean,
+                   "Type of value for %s must be boolean", string(param["name"]).c_str());
+    handle_basler_boolean_parameter(camera, param["name"], param["value"]);
+  }
+  else if ("int" == type)
   {
     ROS_ASSERT_MSG(param["value"].getType() == XmlRpc::XmlRpcValue::TypeInt,
                    "Type of value for %s must be int", string(param["name"]).c_str());
