@@ -180,6 +180,7 @@ int main(int argc, char* argv[])
   // is initialized during the lifetime of this object.
   Pylon::PylonAutoInitTerm autoInitTerm;
   CGrabResultPtr ptrGrabResult;
+  CInstantCamera camera;
 
   try
   {
@@ -190,7 +191,6 @@ int main(int argc, char* argv[])
       throw RUNTIME_EXCEPTION("No camera present.");
     }
 
-    CInstantCamera camera;
     if (serial_number == "") {
       // Create an instant camera object for the camera device found first.
       camera.Attach(CTlFactory::GetInstance().CreateFirstDevice());
@@ -234,18 +234,41 @@ int main(int argc, char* argv[])
       pixelFormat->FromString("RGB8");
     }
 
-    camera.StartGrabbing();
-
-    while (camera.IsGrabbing() && ros::ok())
-    {
-      camera.RetrieveResult(1, ptrGrabResult, TimeoutHandling_Return);
-      ros::spinOnce();
-    }
   }
   catch (GenICam::GenericException &e)
   {
-    ROS_ERROR_STREAM ("An exception occurred." << e.GetDescription());
+    ROS_ERROR_STREAM ("An exception occurred during setup: " << e.GetDescription());
     exitCode = 1;
+    return exitCode;
   }
-  return exitCode;
+
+  while( ros::ok() )
+  {
+    try
+    {
+      if(!camera.IsGrabbing())
+      {
+        camera.StartGrabbing();
+      }
+    }
+    catch (GenICam::GenericException &e)
+    {
+      ROS_ERROR_STREAM("An exception occurred trying to start grabbing: " << e.GetDescription());
+      return 2;
+    }
+
+    while (camera.IsGrabbing() && ros::ok())
+    {
+      ros::spinOnce();
+      try
+      {
+        camera.RetrieveResult(1, ptrGrabResult, TimeoutHandling_Return);
+      }
+      catch (GenICam::GenericException &e)
+      {
+        ROS_ERROR_STREAM("An exception occurred during operation: " << e.GetDescription());
+        break;
+      }
+    }
+  }
 }
