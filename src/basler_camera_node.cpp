@@ -104,7 +104,7 @@ void handle_basler_parameter(CInstantCamera& camera, XmlRpc::XmlRpcValue& param)
   string type = param["type"];
   if ("boolean" == type)
   {
-    ROS_ASSERT_MSG(param["value"].getType() == XmlRpcValue::TypeBoolean,
+    ROS_ASSERT_MSG(param["value"].getType() == XmlRpc::XmlRpcValue::TypeBoolean,
                    "Type of value for %s must be boolean", string(param["name"]).c_str());
     handle_basler_boolean_parameter(camera, param["name"], param["value"]);
   }
