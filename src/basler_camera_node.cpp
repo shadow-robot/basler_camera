@@ -14,6 +14,26 @@ using namespace Pylon;
 using namespace GenApi;
 using std::string;
 
+void handle_basler_boolean_parameter(CInstantCamera& camera, string name, bool value)
+{
+  INodeMap& nodemap = camera.GetNodeMap();
+  try
+  {
+    ROS_INFO_STREAM("Setting boolean param " << name << " to " << value << ".");
+    CBooleanPtr this_node(nodemap.GetNode(name.c_str()));
+    if (!IsWritable(this_node))
+    {
+      ROS_ERROR_STREAM("Basler parameter '" << name << "' isn't writable or doesn't exist.");
+      return;
+    }
+    this_node->SetValue(value);
+  }
+  catch (const GenericException& e)
+  {
+    ROS_ERROR_STREAM(e.GetDescription());
+  }
+}
+
 void handle_basler_int_parameter(CInstantCamera& camera, string name, int value)
 {
   INodeMap& nodemap = camera.GetNodeMap();
@@ -82,7 +102,13 @@ void handle_basler_enum_parameter(CInstantCamera& camera, string name, string va
 void handle_basler_parameter(CInstantCamera& camera, XmlRpc::XmlRpcValue& param)
 {
   string type = param["type"];
-  if ("int" == type)
+  if ("boolean" == type)
+  {
+    ROS_ASSERT_MSG(param["value"].getType() == XmlRpc::XmlRpcValue::TypeBoolean,
+                   "Type of value for %s must be boolean", string(param["name"]).c_str());
+    handle_basler_boolean_parameter(camera, param["name"], param["value"]);
+  }
+  else if ("int" == type)
   {
     ROS_ASSERT_MSG(param["value"].getType() == XmlRpc::XmlRpcValue::TypeInt,
                    "Type of value for %s must be int", string(param["name"]).c_str());
@@ -154,6 +180,7 @@ int main(int argc, char* argv[])
   // is initialized during the lifetime of this object.
   Pylon::PylonAutoInitTerm autoInitTerm;
   CGrabResultPtr ptrGrabResult;
+  CInstantCamera camera;
 
   try
   {
@@ -164,7 +191,6 @@ int main(int argc, char* argv[])
       throw RUNTIME_EXCEPTION("No camera present.");
     }
 
-    CInstantCamera camera;
     if (serial_number == "") {
       // Create an instant camera object for the camera device found first.
       camera.Attach(CTlFactory::GetInstance().CreateFirstDevice());
@@ -208,18 +234,41 @@ int main(int argc, char* argv[])
       pixelFormat->FromString("RGB8");
     }
 
-    camera.StartGrabbing();
-
-    while (camera.IsGrabbing() && ros::ok())
-    {
-      camera.RetrieveResult(1, ptrGrabResult, TimeoutHandling_Return);
-      ros::spinOnce();
-    }
   }
   catch (GenICam::GenericException &e)
   {
-    ROS_ERROR_STREAM ("An exception occurred." << e.GetDescription());
+    ROS_ERROR_STREAM ("An exception occurred during setup: " << e.GetDescription());
     exitCode = 1;
+    return exitCode;
   }
-  return exitCode;
+
+  while( ros::ok() )
+  {
+    try
+    {
+      if(!camera.IsGrabbing())
+      {
+        camera.StartGrabbing();
+      }
+    }
+    catch (GenICam::GenericException &e)
+    {
+      ROS_ERROR_STREAM("An exception occurred trying to start grabbing: " << e.GetDescription());
+      return 2;
+    }
+
+    while (camera.IsGrabbing() && ros::ok())
+    {
+      ros::spinOnce();
+      try
+      {
+        camera.RetrieveResult(1, ptrGrabResult, TimeoutHandling_Return);
+      }
+      catch (GenICam::GenericException &e)
+      {
+        ROS_ERROR_STREAM("An exception occurred during operation: " << e.GetDescription());
+        break;
+      }
+    }
+  }
 }
