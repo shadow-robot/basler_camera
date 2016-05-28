@@ -1,8 +1,18 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(basler_camera)
 
-find_package(catkin REQUIRED COMPONENTS roscpp image_transport camera_info_manager cv_bridge)
+find_package(catkin REQUIRED COMPONENTS
+    roscpp
+    image_transport
+    camera_info_manager
+    cv_bridge
+    dynamic_reconfigure
+)
 find_package(OpenCV REQUIRED)
+
+generate_dynamic_reconfigure_options(
+    cfg/Camera.cfg
+)
 
 catkin_package(
   INCLUDE_DIRS include
@@ -34,6 +44,7 @@ link_directories(
 
 ## Declare a C++ executable
 add_executable(basler_camera_node src/basler_camera_node.cpp)
+add_dependencies(basler_camera_node ${PROJECT_NAME}_gencfg)
 add_dependencies(basler_camera_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against

@@ -3,6 +3,8 @@
 #include <image_transport/image_transport.h>
 #include <cv_bridge/cv_bridge.h>
 #include "std_msgs/String.h"
+#include <basler_camera/CameraConfig.h>
+#include <dynamic_reconfigure/server.h>
 
 // Include files to use the PYLON API.
 #include <pylon/PylonIncludes.h>
@@ -13,6 +15,8 @@
 using namespace Pylon;
 using namespace GenApi;
 using std::string;
+
+static CInstantCamera camera;
 
 void handle_basler_boolean_parameter(CInstantCamera& camera, string name, bool value)
 {
@@ -149,6 +153,35 @@ void handle_basler_parameters(CInstantCamera& camera)
   }
 }
 
+void configure_callback(basler_camera::CameraConfig &config, uint32_t level)
+{
+    for (std::vector<basler_camera::CameraConfig::AbstractParamDescriptionConstPtr>::const_iterator _i = config.__getParamDescriptions__().begin(); _i != config.__getParamDescriptions__().end(); ++_i)
+    {
+        boost::any val;
+        (*_i)->getValue(config, val);
+        if("bool" == (*_i)->type)
+        {
+            handle_basler_boolean_parameter(camera, (*_i)->name,  boost::any_cast<bool>(val));
+        }
+        else if("double" == (*_i)->type)
+        {
+            handle_basler_float_parameter(camera, (*_i)->name,  boost::any_cast<double>(val));
+        }
+        else if("int" == (*_i)->type)
+        {
+            handle_basler_int_parameter(camera, (*_i)->name,  boost::any_cast<int>(val));
+        }
+        else if("str" == (*_i)->type)
+        {
+            handle_basler_enum_parameter(camera, (*_i)->name,  boost::any_cast<std::string>(val));
+        }
+        else
+        {
+            ROS_FATAL_STREAM("Unknown param type for config parameter " << (*_i)->name << ": " << (*_i)->type);
+        }
+    }
+}
+
 int main(int argc, char* argv[])
 {
   ros::init(argc, argv, "basler_camera");
@@ -180,7 +213,6 @@ int main(int argc, char* argv[])
   // is initialized during the lifetime of this object.
   Pylon::PylonAutoInitTerm autoInitTerm;
   CGrabResultPtr ptrGrabResult;
-  CInstantCamera camera;
 
   try
   {
@@ -241,6 +273,9 @@ int main(int argc, char* argv[])
     exitCode = 1;
     return exitCode;
   }
+
+  dynamic_reconfigure::Server<basler_camera::CameraConfig> server;
+  server.setCallback(configure_callback);
 
   while( ros::ok() )
   {
