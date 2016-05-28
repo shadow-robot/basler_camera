@@ -192,9 +192,11 @@ int main(int argc, char* argv[])
   ros::init(argc, argv, "basler_camera");
   ros::NodeHandle nh("~");
 
-  int frame_rate;
-  if(!nh.getParam("frame_rate", frame_rate))
-    frame_rate = 20;
+  if(!nh.hasParam("frame_rate"))
+  {
+      ROS_ERROR("frame_rate param has been removed. Please use AcquisitionFrameRate and remember to set AcquisitionFrameRateEnable=True");
+      nh.deleteParam("frame_rate");
+  }
 
   string camera_info_url;
   if(!nh.getParam("camera_info_url", camera_info_url))
@@ -256,9 +258,6 @@ int main(int argc, char* argv[])
     camera.RegisterConfiguration(new CAcquireContinuousConfiguration , RegistrationMode_ReplaceAll, Cleanup_Delete);
 
     camera.Open();
-
-    handle_basler_float_parameter(camera, "AcquisitionFrameRate", frame_rate); // This would be overwriten if you specifed
-    // different frame rate via a yaml file, here to honour previously documented although apparently unimplemented feature.
 
     handle_basler_parameters(camera);
 
