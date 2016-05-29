@@ -10,6 +10,26 @@ find_package(catkin REQUIRED COMPONENTS
 )
 find_package(OpenCV REQUIRED)
 
+find_path(pylon_BIN_PATH pylon-config
+    PATHS /opt/pylon5 /usr/local /usr/local/pylon5 ENV PYLON_ROOT
+    PATH_SUFFIXES bin)
+execute_process(COMMAND ${pylon_BIN_PATH}/pylon-config --cflags-only-I
+    OUTPUT_VARIABLE _pylon_INCLUDE)
+string(REPLACE "-I" "" _pylon_INCLUDE ${_pylon_INCLUDE})
+string(STRIP ${_pylon_INCLUDE} _pylon_INCLUDE)
+string(REPLACE " " ";" pylon_INCLUDE ${_pylon_INCLUDE})
+execute_process(COMMAND ${pylon_BIN_PATH}/pylon-config --libs-only-other
+    OUTPUT_VARIABLE _pylon_LDFLAGS)
+string(STRIP ${_pylon_LDFLAGS} pylon_LDFLAGS)
+execute_process(COMMAND ${pylon_BIN_PATH}/pylon-config --libdir
+    OUTPUT_VARIABLE _pylon_LIB_DIR)
+string(STRIP ${_pylon_LIB_DIR} pylon_LIB_DIR)
+execute_process(COMMAND ${pylon_BIN_PATH}/pylon-config --libs-only-l
+    OUTPUT_VARIABLE _pylon_LIBS)
+string(REPLACE "-l" "" _pylon_LIBS ${_pylon_LIBS})
+string(STRIP ${_pylon_LIBS} _pylon_LIBS)
+string(REPLACE " " ";" pylon_LIBS ${_pylon_LIBS})
+
 generate_dynamic_reconfigure_options(
     cfg/Camera.cfg
 )
@@ -26,17 +46,12 @@ catkin_package(
 ###########
 
 ## Additional Linker flags for pylon
-SET( CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -Wl,-E")
+SET( CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} ${pylon_LDFLAGS}")
 
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
-include_directories(include ${catkin_INCLUDE_DIRS} $ENV{PYLON_ROOT}/include $ENV{GENICAM_ROOT_V2_3}/library/CPP/include)
-link_directories(
-  $ENV{PYLON_ROOT}/lib64 
-  $ENV{GENICAM_ROOT_V2_3}/bin/Linux64_x64
-  $ENV{GENICAM_ROOT_V2_3}/bin/Linux64_x64/GenApi/Generic
-  $ENV{GENICAM_ROOT_V2_3}/library/CPP/lib/Linux64_x64
-)
+include_directories(include ${catkin_INCLUDE_DIRS} ${pylon_INCLUDE})
+link_directories( ${pylon_LIB_DIR} )
 
 ## Declare a C++ library
 #add_library(basler_camera src/basler_camera_node.cpp)
@@ -51,9 +66,6 @@ add_dependencies(basler_camera_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin
 target_link_libraries(basler_camera_node
   ${OpenCV_LIBS}
   ${catkin_LIBRARIES}
-  pylonbase
-  pylonutility
-  GCBase_gcc_v3_0_Basler_pylon_v5_0
-  GenApi_gcc_v3_0_Basler_pylon_v5_0
+  ${pylon_LIBS}
 ) 
 
