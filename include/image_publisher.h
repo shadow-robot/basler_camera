@@ -43,19 +43,14 @@ namespace Pylon
       GenApi::CIntegerPtr width(camera.GetNodeMap().GetNode("Width"));
       GenApi::CIntegerPtr height(camera.GetNodeMap().GetNode("Height"));
       cv::Mat cv_img_rgb(width->GetValue(), height->GetValue(), CV_8UC3);
-      //cv::Mat cv_img_rgb(width->GetValue(), height->GetValue(), CV_8UC3);
 
       if (ptrGrabResult->GrabSucceeded())
       {
         converter_.Convert(pylon_image_, ptrGrabResult);
 
         cv_img_rgb = cv::Mat(ptrGrabResult->GetHeight(), ptrGrabResult->GetWidth(), CV_8UC3,(uint8_t*)pylon_image_.GetBuffer());
-        //cv::cvtColor(cv_img_bgr, cv_img_bgr, CV_BGR2RGB);
-        //cv::cvtColor(cv_img_rgb, cv_img_bgr, CV_RGB2BGR);
         sensor_msgs::ImagePtr image = cv_bridge::CvImage(std_msgs::Header(), "rgb8", cv_img_rgb).toImageMsg();
         sensor_msgs::CameraInfo::Ptr cinfo = cinfo_;
-        //imwrite( "/home/autopic/projects/shadow_robot/autopic/src/bgr_Image.jpg", cv_img_bgr );
-        //imwrite( "/home/autopic/projects/shadow_robot/autopic/src/rgb_Image.jpg", cv_img_rgb );
 
         image->header.frame_id = frame_id_;
         image->header.stamp = timestamp;
