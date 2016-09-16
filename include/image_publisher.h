@@ -11,7 +11,6 @@
 
 #include <ros/console.h>
 #include <camera_info_manager/camera_info_manager.h>
-#include <highgui.h>
 
 namespace Pylon
 {
