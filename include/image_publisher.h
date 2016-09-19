@@ -41,15 +41,14 @@ namespace Pylon
       ros::Time timestamp = ros::Time::now();
       GenApi::CIntegerPtr width(camera.GetNodeMap().GetNode("Width"));
       GenApi::CIntegerPtr height(camera.GetNodeMap().GetNode("Height"));
-      cv::Mat cv_img(width->GetValue(), height->GetValue(), CV_8UC3);
+      cv::Mat cv_img_rgb(width->GetValue(), height->GetValue(), CV_8UC3);
 
       if (ptrGrabResult->GrabSucceeded())
       {
         converter_.Convert(pylon_image_, ptrGrabResult);
 
-        cv_img = cv::Mat(ptrGrabResult->GetHeight(), ptrGrabResult->GetWidth(), CV_8UC3,(uint8_t*)pylon_image_.GetBuffer());
-        sensor_msgs::ImagePtr image = cv_bridge::CvImage(std_msgs::Header(), "rgb8", cv_img).toImageMsg();
-
+        cv_img_rgb = cv::Mat(ptrGrabResult->GetHeight(), ptrGrabResult->GetWidth(), CV_8UC3,(uint8_t*)pylon_image_.GetBuffer());
+        sensor_msgs::ImagePtr image = cv_bridge::CvImage(std_msgs::Header(), "rgb8", cv_img_rgb).toImageMsg();
         sensor_msgs::CameraInfo::Ptr cinfo = cinfo_;
 
         image->header.frame_id = frame_id_;
