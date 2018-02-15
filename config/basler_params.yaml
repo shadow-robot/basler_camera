@@ -4,6 +4,10 @@ basler_params:
     type: float
     value: 30.0
   -
+    name: AcquisitionFrameRateEnable
+    type: boolean
+    value: true
+  -
     name: AcquisitionMode
     type: enum
     value: Continuous
