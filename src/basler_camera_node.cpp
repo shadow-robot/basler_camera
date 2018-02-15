@@ -3,6 +3,8 @@
 #include <image_transport/image_transport.h>
 #include <cv_bridge/cv_bridge.h>
 #include "std_msgs/String.h"
+#include <basler_camera/CameraConfig.h>
+#include <dynamic_reconfigure/server.h>
 
 // Include files to use the PYLON API.
 #include <pylon/PylonIncludes.h>
@@ -13,6 +15,8 @@
 using namespace Pylon;
 using namespace GenApi;
 using std::string;
+
+static CInstantCamera camera;
 
 void handle_basler_boolean_parameter(CInstantCamera& camera, string name, bool value)
 {
@@ -101,30 +105,35 @@ void handle_basler_enum_parameter(CInstantCamera& camera, string name, string va
 
 void handle_basler_parameter(CInstantCamera& camera, XmlRpc::XmlRpcValue& param)
 {
+  ros::NodeHandle nh("~");
   string type = param["type"];
   if ("boolean" == type)
   {
     ROS_ASSERT_MSG(param["value"].getType() == XmlRpc::XmlRpcValue::TypeBoolean,
                    "Type of value for %s must be boolean", string(param["name"]).c_str());
     handle_basler_boolean_parameter(camera, param["name"], param["value"]);
+    nh.setParam(param["name"], (bool)param["value"]);
   }
   else if ("int" == type)
   {
     ROS_ASSERT_MSG(param["value"].getType() == XmlRpc::XmlRpcValue::TypeInt,
                    "Type of value for %s must be int", string(param["name"]).c_str());
     handle_basler_int_parameter(camera, param["name"], param["value"]);
+    nh.setParam(param["name"], (int)param["value"]);
   }
   else if ("float" == type)
   {
     ROS_ASSERT_MSG(param["value"].getType() == XmlRpc::XmlRpcValue::TypeDouble,
                    "Type of value for %s must be float", string(param["name"]).c_str());
     handle_basler_float_parameter(camera, param["name"], param["value"]);
+    nh.setParam(param["name"], (double)param["value"]);
   }
   else if ("enum" == type)
   {
     ROS_ASSERT_MSG(param["value"].getType() == XmlRpc::XmlRpcValue::TypeString,
                    "Type of value for %s must be string", string(param["name"]).c_str());
     handle_basler_enum_parameter(camera, param["name"], param["value"]);
+    nh.setParam(param["name"], (std::string)param["value"]);
   }
   else
   {
@@ -149,14 +158,106 @@ void handle_basler_parameters(CInstantCamera& camera)
   }
 }
 
+void handle_parameters(CInstantCamera& camera)
+{
+  ros::NodeHandle private_handle("~");
+  std::vector<std::string> keys;
+  std::string prefix = private_handle.getNamespace() + "/";
+  if(!private_handle.getParamNames(keys))
+  {
+      ROS_INFO("No params found on parameter server, using defaults from dynamic_reconfigure.");
+      return;
+  }
+  for(std::vector<std::string>::iterator k=keys.begin(); k != keys.end(); ++k)
+  {
+      if((*k).size() < prefix.size())
+      {
+          continue;
+      }
+      std::pair<std::string::iterator, std::string::iterator> different = std::mismatch(prefix.begin(), prefix.end(), (*k).begin());
+      if(different.first != prefix.end())
+      {
+          continue;
+      }
+      std::string param_name(different.second, (*k).end());
+      XmlRpc::XmlRpcValue v;
+      private_handle.getParam(*k, v);
+      if(param_name == "basler_params")
+      {
+          ROS_WARN("Using legacy basler_params value.");
+          handle_basler_parameters(camera);
+          break;
+      }
+      else if((param_name == "camera_info_url") ||
+              (param_name == "frame_id") ||
+              (param_name == "frame_rate") ||
+              (param_name == "serial_number"))
+      {
+          // handled in main before camera is opened
+          continue;
+      }
+      else if(v.getType() == XmlRpc::XmlRpcValue::TypeBoolean)
+      {
+          handle_basler_boolean_parameter(camera, param_name, v);
+      }
+      else if(v.getType() == XmlRpc::XmlRpcValue::TypeInt)
+      {
+          handle_basler_int_parameter(camera, param_name, v);
+      }
+      else if(v.getType() == XmlRpc::XmlRpcValue::TypeDouble)
+      {
+          handle_basler_float_parameter(camera, param_name, v);
+      }
+      else if(v.getType() == XmlRpc::XmlRpcValue::TypeString)
+      {
+          handle_basler_enum_parameter(camera, param_name, v);
+      }
+      else
+      {
+          ROS_ERROR_STREAM("Unexpected data type for " << param_name);
+      }
+  }
+}
+
+void configure_callback(basler_camera::CameraConfig &config, uint32_t level)
+{
+    for (std::vector<basler_camera::CameraConfig::AbstractParamDescriptionConstPtr>::const_iterator _i = config.__getParamDescriptions__().begin(); _i != config.__getParamDescriptions__().end(); ++_i)
+    {
+        boost::any val;
+        (*_i)->getValue(config, val);
+        if("bool" == (*_i)->type)
+        {
+            handle_basler_boolean_parameter(camera, (*_i)->name,  boost::any_cast<bool>(val));
+        }
+        else if("double" == (*_i)->type)
+        {
+            handle_basler_float_parameter(camera, (*_i)->name,  boost::any_cast<double>(val));
+        }
+        else if("int" == (*_i)->type)
+        {
+            handle_basler_int_parameter(camera, (*_i)->name,  boost::any_cast<int>(val));
+        }
+        else if("str" == (*_i)->type)
+        {
+            handle_basler_enum_parameter(camera, (*_i)->name,  boost::any_cast<std::string>(val));
+        }
+        else
+        {
+            ROS_FATAL_STREAM("Unknown param type for config parameter " << (*_i)->name << ": " << (*_i)->type);
+        }
+    }
+}
+
 int main(int argc, char* argv[])
 {
   ros::init(argc, argv, "basler_camera");
   ros::NodeHandle nh("~");
 
-  int frame_rate;
-  if(!nh.getParam("frame_rate", frame_rate))
-    frame_rate = 20;
+  if(!nh.hasParam("frame_rate"))
+  {
+      ROS_ERROR("frame_rate param has been removed. Please use AcquisitionFrameRate and remember to set AcquisitionFrameRateEnable=True");
+      nh.deleteParam("frame_rate");
+  }
 
   string camera_info_url;
   if(!nh.getParam("camera_info_url", camera_info_url))
@@ -190,7 +291,6 @@ int main(int argc, char* argv[])
       throw RUNTIME_EXCEPTION("No camera present.");
     }
 
-    CInstantCamera camera;
     if (serial_number == "") {
       // Create an instant camera object for the camera device found first.
       camera.Attach(CTlFactory::GetInstance().CreateFirstDevice());
@@ -220,10 +320,7 @@ int main(int argc, char* argv[])
 
     camera.Open();
 
-    handle_basler_float_parameter(camera, "AcquisitionFrameRate", frame_rate); // This would be overwriten if you specifed
-    // different frame rate via a yaml file, here to honour previously documented although apparently unimplemented feature.
-
-    handle_basler_parameters(camera);
+    handle_parameters(camera);
 
     // Set the pixel format to RGB8 if available.
     INodeMap& nodemap = camera.GetNodeMap();
@@ -234,18 +331,44 @@ int main(int argc, char* argv[])
       pixelFormat->FromString("RGB8");
     }
 
-    camera.StartGrabbing();
-
-    while (camera.IsGrabbing() && ros::ok())
-    {
-      camera.RetrieveResult(1, ptrGrabResult, TimeoutHandling_Return);
-      ros::spinOnce();
-    }
   }
   catch (GenICam::GenericException &e)
   {
-    ROS_ERROR_STREAM ("An exception occurred." << e.GetDescription());
+    ROS_ERROR_STREAM ("An exception occurred during setup: " << e.GetDescription());
     exitCode = 1;
+    return exitCode;
   }
-  return exitCode;
+
+  dynamic_reconfigure::Server<basler_camera::CameraConfig> server;
+  server.setCallback(configure_callback);
+
+  while( ros::ok() )
+  {
+    try
+    {
+      if(!camera.IsGrabbing())
+      {
+        camera.StartGrabbing();
+      }
+    }
+    catch (GenICam::GenericException &e)
+    {
+      ROS_ERROR_STREAM("An exception occurred trying to start grabbing: " << e.GetDescription());
+      return 2;
+    }
+
+    while (camera.IsGrabbing() && ros::ok())
+    {
+      ros::spinOnce();
+      try
+      {
+        camera.RetrieveResult(1, ptrGrabResult, TimeoutHandling_Return);
+      }
+      catch (GenICam::GenericException &e)
+      {
+        ROS_ERROR_STREAM("An exception occurred during operation: " << e.GetDescription());
+        break;
+      }
+    }
+  }
 }
